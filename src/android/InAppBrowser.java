@@ -18,6 +18,9 @@
 */
 package org.apache.cordova.inappbrowser;
 
+import java.net.URISyntaxException;
+import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -1061,7 +1064,26 @@ public class InAppBrowser extends CordovaPlugin {
          */
         @Override
         public boolean shouldOverrideUrlLoading(WebView webView, String url) {
-            if (url.startsWith(WebView.SCHEME_TEL)) {
+              if(url.toLowerCase().startsWith("intent:")){
+                  try {
+                      Context context = webView.getContext();
+                      Intent intent = new Intent().parseUri(url,Intent.URI_INTENT_SCHEME);
+                      if(intent != null) {
+                          webView.stopLoading();
+                          PackageManager packageManager = context.getPackageManager();
+                          ResolveInfo info = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                          if(info != null) {
+                              context.startActivity(intent);
+                          } else {
+                              String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+                              webView.loadUrl(fallbackUrl);
+                          }
+                          return true;
+                      }
+                  } catch(URISyntaxException e) {
+                      LOG.e("web","Can't resolve intent://",e);
+                  }
+              } else if (url.startsWith(WebView.SCHEME_TEL)) {
                 try {
                     Intent intent = new Intent(Intent.ACTION_DIAL);
                     intent.setData(Uri.parse(url));
