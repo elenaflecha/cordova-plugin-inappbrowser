@@ -972,6 +972,7 @@
     self.backButton.enabled = theWebView.canGoBack;
     self.forwardButton.enabled = theWebView.canGoForward;
     [self.spinner stopAnimating];
+    _browserOptions.hidespinner = YES;
 
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
 
